@@ -1,10 +1,11 @@
 name: build_switch
 
 on:
+  workflow_dispatch:
   push:
-    branches: [ "master" ]
+    branches: [ "master", "main" ]
   pull_request:
-    branches: [ "master" ]
+    branches: [ "master", "main" ]
 
 jobs:
   build:
@@ -29,3 +30,15 @@ jobs:
 
     - name: Build
       run: cmake --build --preset ${{ matrix.preset }} --parallel 4
+
+    # 스위치용 sysmodule을 SD 카드에 바로 덮어쓸 수 있는 모양으로 묶어 올림
+    - name: Package sysmodule
+      run: |
+        mkdir -p out/atmosphere/contents out/config/ftpsrv
+        cp -r build/switch/420000000000011B out/atmosphere/contents/
+        cp assets/config.ini.template out/config/ftpsrv/
+
+    - uses: actions/upload-artifact@v4
+      with:
+        name: ftpsrv-sysmod-savefix
+        path: out
